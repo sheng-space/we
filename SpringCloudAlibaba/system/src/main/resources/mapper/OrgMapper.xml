@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<!-- 组织架构 -->
+<mapper namespace="OrgMapper">
+	
+	<!-- 新增 -->
+	<insert id="add" parameterType="pd">
+		insert into sys_org(
+			id,
+			org_status,
+			org_no,
+			org_name,
+			org_pyno,
+			parent_id,
+			index_,
+			org_type,
+			linkman,
+			phone,
+			address,
+			remark,
+			all_code,
+			all_name,
+			add_time,
+			deleted,
+			salesperson
+		)values(
+			#{id},
+			1,
+			#{org_no},
+			#{org_name},
+			#{org_pyno},
+			#{parent_id},
+			#{index_},
+			#{org_type},
+			#{linkman},
+			#{phone},
+			#{address},
+			#{remark},
+			#{all_code},
+			#{all_name},
+			#{add_time},
+			0,
+			salesperson
+		)
+	</insert>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update sys_org
+		   set org_no=#{org_no},
+		   	   org_name=#{org_name},
+		   	   org_pyno=#{org_pyno},
+		   	   parent_id=#{parent_id},
+		   	   index_=#{index_},
+		   	   org_type=#{org_type},
+		   	   linkman=#{linkman},
+		   	   phone=#{phone},
+		   	   address=#{address},
+		   	   remark=#{remark},
+		   	   all_code=#{all_code},
+		   	   all_name=#{all_name},
+		   	   salesperson=#{salesperson}
+		 where id=#{id}
+	</update>
+	
+	<!-- 获得一条记录 -->
+	<select id="get" parameterType="pd" resultType="pd">
+		select * 
+		  from sys_org
+		 where id=#{id}
+	</select>
+	
+	<!-- 获得全部记录 -->
+	<select id="getAll" parameterType="pd" resultType="pd">
+		select a.*,
+				b.name as typeName,
+				c.org_name as parentName
+		  from sys_org a left join sys_iteminfo b on a.org_type=b.id
+						  left join sys_org c on a.parent_id=c.id
+		 where a.deleted=0
+		<if test="org_id != null and org_id != ''">
+			and FIND_IN_SET(a.id,queryChildrenOrgInfo(#{org_id}))
+		</if>
+		<if test="org_type_num != null and org_type_num != ''">
+			and b.number=#{org_type_num}
+		</if>
+		<if test="org_name != null and org_name != ''">
+			and a.org_name=#{org_name}
+		</if>
+		<if test="org_status != null and org_status != ''">
+			and a.org_status=#{org_status}
+		</if>
+		<choose>
+			<when test="orderBy != null and orderBy != ''">
+				${orderBy}
+			</when>
+			<otherwise>
+				order by org_no
+			</otherwise>
+		</choose>
+
+
+	</select>
+	
+	<!-- 分页获得记录 -->
+	<select id="getListPage" parameterType="page" resultType="pd">
+		select a.*,
+		  	   b.name as typeName
+		  from sys_org a left join sys_iteminfo b on a.org_type=b.id
+		 where a.deleted=0
+		 <if test="pd.parent_id != null and pd.parent_id != ''">
+		 	and (a.id=#{pd.parent_id} or a.parent_id=#{pd.parent_id})
+		 </if>
+		<if test="pd.key != null and pd.key != ''">
+			and a.org_name like concat('%',#{pd.key},'%')
+		</if>
+		<if test="pd.org_name != null and pd.org_name != ''">
+			and a.org_name like concat('%',#{pd.org_name},'%')
+		</if>
+		<if test="pd.org_no != null and pd.org_no != ''">
+			and a.org_no like concat('%',#{pd.org_no},'%')
+		</if>
+		<choose>
+			<when test="pd.orderBy != null and pd.orderBy != ''">
+				${pd.orderBy}
+			</when>
+			<otherwise>
+				order by a.org_no
+			</otherwise>
+		</choose>
+
+	</select>
+	
+	<!-- 删除记录 -->
+	<update id="delete" parameterType="pd">
+		update sys_org
+		   set deleted=1
+		 where id=#{id}
+	</update>
+	
+	<!-- 启用/禁用 -->
+	<update id="status" parameterType="pd">
+		update sys_org
+		   set org_status=(case when org_status=1 then 0 else 1 end)
+		 where id=#{id}
+	</update>
+	
+	<!-- 根据组织架构ID，查询公司ID -->
+
+</mapper>

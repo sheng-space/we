@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<!-- 系统参数 -->
+<mapper namespace="ParamMapper">
+	
+	<!-- 新增 -->
+	<insert id="add" parameterType="pd">
+		insert into sys_param(
+			id,
+			key_,
+			val,
+			remark,
+			index_,
+			sys,
+			deleted
+		)values(
+			#{id},
+			#{key_},
+			#{val},
+			#{remark},
+			#{index_},
+			#{sys},
+			0
+		)
+	</insert>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update sys_param
+		   set key_=#{key_},
+		   	   val=#{val},
+		   	   remark=#{remark},
+		   	   index_=#{index_},
+		   	   sys=#{sys}
+		 where id=#{id}
+	</update>
+	
+	<!-- 获得分页 -->
+	<select id="getListPage" parameterType="page" resultType="pd">
+		select *
+		  from sys_param
+		 where deleted=0
+		 <if test="pd.key != null and pd.key != ''">
+		 	and (key_ like concat(concat('%',#{pd.key}),'%') or
+		 	 	 val like concat(concat('%',#{pd.key}),'%') or
+		 	 	 remark like concat(concat('%',#{pd.key}),'%'))
+		 </if>
+		<choose>
+			<when test="pd.orderBy != null and pd.orderBy != ''">
+				${pd.orderBy}
+			</when>
+			<otherwise>
+				order by index_
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据id查询单条记录 -->
+	<select id="get" parameterType="pd" resultType="pd">
+		select *
+		  from sys_param
+		 where id=#{id}
+	</select>
+	
+	<!-- 删除记录 -->
+	<update id="delete" parameterType="pd">
+		update sys_param
+		   set deleted = 1
+		 where id=#{id}
+	</update>
+
+	<!-- 查询所有记录 -->
+	<select id="listAll" resultType="pd">
+		select * from sys_param where deleted=0
+	</select>
+
+	<!-- 根据Key查询记录-->
+	<select id="findBykeyInfo" parameterType="java.lang.String" resultType="pd">
+		select * from sys_param where deleted=0
+		<if test="_parameter != null and _parameter != ''">
+			and key_=#{_parameter}
+		</if>
+	</select>
+
+</mapper>

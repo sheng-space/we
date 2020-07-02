@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<!-- 接口权限 -->
+<mapper namespace="LimitsMapper">
+
+	<!-- 表名 -->
+	<sql id="TableName">
+		sys_limits
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+	 	app_id,
+	 	app_key,
+	 	app_secret,
+	 	chars,
+	 	company_id,
+	 	remark,
+	 	add_time,
+	 	id
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+	 	#{app_id},
+	 	#{app_key},
+	 	#{app_secret},
+	 	#{chars},
+	 	#{company_id},
+	 	#{remark},
+	 	#{add_time},
+	 	#{id}
+	</sql>
+	
+	<!-- 新增 -->
+	<insert id="add" parameterType="pd">
+		insert into <include refid="TableName"></include>(
+			<include refid="Field"></include>
+		)values(
+			<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update <include refid="TableName"></include>
+		   set app_id=#{app_id},
+			   app_key=#{app_key},
+			   app_secret=#{app_secret},
+			   chars=#{chars},
+			   remark=#{remark},
+			   id=id
+		 where id=#{id}
+	</update>
+	
+	<!-- 删除 -->
+	<delete id="delete" parameterType="pd">
+		delete from <include refid="TableName"></include>
+		where id=#{id}
+	</delete>
+	
+	<!-- 根据id查询信息 -->
+	<select id="get" parameterType="pd" resultType="pd">
+		select <include refid="Field"></include>
+		  from <include refid="TableName"></include>
+		 where id=#{id}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="getListPage" parameterType="page" resultType="pd">
+		select <include refid="Field"></include>
+		  from <include refid="TableName"></include>
+		 where 1=1
+		<!-- 关键词 检索 
+		<if test="pd.key != null and pd.key != ''">
+			and (
+					字段1 like concat(concat('%', #{pd.key}),'%') or
+					字段2 like concat(concat('%', #{pd.key}),'%')
+				)
+		</if> -->
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select <include refid="Field"></include>
+		  from <include refid="TableName"></include>
+	  	where 1=1
+		<if test="status != null and status != ''">
+			and status=#{status}
+		</if>
+		<if test="app_id != null and app_id != ''">
+			and app_id=#{app_id}
+		</if>
+	</select>
+	
+</mapper>

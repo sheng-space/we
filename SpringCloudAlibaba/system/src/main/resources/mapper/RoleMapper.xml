@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<!-- 角色 -->
+<mapper namespace="RoleMapper">
+	
+	<!-- 新增记录 -->
+	<insert id="add" parameterType="pd">
+		insert into sys_role(
+			id,
+			role_no,
+			role_name,
+			role_type,
+			role_sys,
+			role_desc,
+			deleted
+		)values(
+			#{id},
+			#{role_no},
+			#{role_name},
+			#{role_type},
+			#{role_sys},
+			#{role_desc},
+			0
+		)
+	</insert>
+	
+	<!-- 修改记录 -->
+	<update id="edit" parameterType="pd">
+		update sys_role
+		   set role_no=#{role_no},
+		   	   role_name=#{role_name},
+		   	   role_type=#{role_type},
+		   	   role_sys=#{roole_sys},
+		   	   role_desc=#{role_desc}
+		 where id=#{id}
+	</update>
+	
+	<!-- 分页查询记录 -->
+	<select id="getListPage" parameterType="page" resultType="pd">
+		select a.*,b.name as type_name 
+		  from sys_role a left join sys_iteminfo b on a.role_type=b.id
+		 where a.deleted=0
+		<if test="pd.key != null and pd.key != ''">
+			and a.role_name like concat('%',#{pd.key},'%')
+		</if>
+		<if test="pd.where != null and pd.where != ''">
+			${pd.where}
+		</if>
+		<choose>
+			<when test="pd.orderBy != null and pd.orderBy != ''">
+				${pd.orderBy}
+			</when>
+			<otherwise>
+				order by a.role_no
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 查询单条记录 -->
+	<select id="get" parameterType="pd" resultType="pd">
+		select * 
+		  from sys_role
+		 where id=#{id}
+	</select>
+	
+	<!-- 获得所有记录 -->
+	<select id="getAll" parameterType="pd" resultType="pd">
+		select * 
+		  from sys_role
+		 where deleted=0
+		<if test="role_sys != null and role_sys != ''">
+			and role_sys=#{roole_sys}
+		</if>
+	</select>
+	
+	<!-- 删除信息 -->
+	<update id="delete" parameterType="String">
+		update sys_role
+		   set deleted=1
+		 where id=#{id}
+	</update>
+	
+	<!-- 角色所能看到的权限查询 -->
+	<select id="right" parameterType="pd" resultType="pd">
+		SELECT CONCAT(a.id,'BTN') AS id,
+			   CONCAT(a.btn_name,'-',a.btn_desc) AS menu_name,
+			   a.menu_id AS parent_id,
+			   (CASE WHEN b.id IS NULL THEN 0 ELSE 1 END) AS checkd,
+			   a.index_,
+			   c.menu_url,
+			   a.btn_code,
+			   a.group_,
+			   c.menu_code
+		  FROM sys_btn a LEFT JOIN sys_bright b ON a.id=b.btn_id AND b.role_id=#{role_id}
+		  				 LEFT JOIN sys_menu c ON a.menu_id=c.id
+		UNION ALL
+		SELECT a.id,
+			   a.menu_name,
+			   a.parent_id,
+			   (CASE WHEN b.id IS NULL THEN 0 ELSE 1 END) AS checkd,
+			   a.index_,
+			   a.menu_url,
+			   '' as btn_code,
+			   0 as group_,
+			   a.menu_code
+		  FROM sys_menu a LEFT JOIN sys_mright b ON a.id=b.menu_id AND b.role_id=#{role_id}
+		ORDER BY group_,index_
+	</select>
+
+</mapper>

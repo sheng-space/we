@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<!-- 测试 -->
+<mapper namespace="TestMapper">
+
+	<select id="get" parameterType="pd" resultType="pd">
+		select * from sys_user where id = #{id}
+	</select>
+
+	<select id="getListPage" parameterType="page" resultType="pd">
+		select * from sys_user
+		where 0=0
+		<if test="pd.id != null and pd.id != ''">
+			and	id = #{pd.id}
+		</if>
+	</select>
+
+</mapper>

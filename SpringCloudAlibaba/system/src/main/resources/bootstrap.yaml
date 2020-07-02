@@ -1,0 +1,12 @@
+server:
+  port: 8181
+spring:
+  application:
+    name: system
+  cloud:
+    nacos:
+      discovery:
+        server-addr: http://47.115.11.15:8848
+      config:
+        server-addr: http://47.115.11.15:8848
+        file-extension: yaml

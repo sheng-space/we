@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<!-- 字典管理 -->
+<mapper namespace="ItemMapper">
+
+	<!-- ================字典分类=====================start -->
+	<!-- 新增 -->
+	<insert id="addType" parameterType="pd">
+		insert into sys_itemtype(
+			id,
+			number,
+			name,
+			type_,
+			remark,
+			deleted
+		)values(
+			#{id},
+			#{number},
+			#{name},
+			1,
+			#{remark},
+			0
+		)
+	</insert>
+	
+	<!-- 修改 -->
+	<update id="editType" parameterType="pd">
+		update sys_itemtype
+		   set number=#{number},
+		       name=#{name},
+		       remark=#{remark}
+		 where id=#{id}
+	</update>
+	
+	<!-- 获得单条记录 -->
+	<select id="getType" parameterType="pd" resultType="pd">
+		select * 
+		  from sys_itemtype
+		 where id=#{id}
+	</select>
+	
+	<!-- 分页获得记录 -->
+	<select id="getTypeListPage" parameterType="page" resultType="pd">
+		select *
+		  from sys_itemtype
+		 where deleted=0
+	  order by number
+	</select>
+	
+	<!-- 查询全部记录 -->
+	<select id="getTypeAll" parameterType="pd" resultType="pd">
+		select *,
+		       '0' as parent_id 
+		  from sys_itemtype
+		 where deleted=0
+	  order by number
+	</select>
+	
+	<!-- 删除记录 -->
+	<update id="deleteType" parameterType="pd">
+		update sys_itemtype
+		   set deleted=1
+		 where id=#{id}
+	</update>
+	
+	<!-- ================字典分类=====================end -->
+	
+	
+	<!-- ================字典信息=====================start -->
+	<!-- 新增记录 -->
+	<insert id="add" parameterType="pd">
+		insert into sys_iteminfo(
+			id,
+			number,
+			name,
+			type_id,
+			remark,
+			parent_id,
+			icon_url,
+			deleted
+		)values(
+			#{id},
+			#{number},
+			#{name},
+			#{type_id},
+			#{remark},
+			#{icon_url},
+			#{parent_id},
+			0
+		)
+	</insert>
+	
+	<!-- 修改记录 -->
+	<update id="edit" parameterType="pd">
+		update sys_iteminfo
+		   set number=#{number},
+		       name=#{name},
+		       type_id=#{type_id},
+			   icon_url=#{icon_url},
+		       <if test="parent_id!=null">
+				   parent_id=#{parent_id},
+			   </if>
+		       remark=#{remark}
+		 where id=#{id}
+	</update>
+	
+	<!-- 获得单条记录 -->
+	<select id="get" parameterType="pd" resultType="pd">
+		select * 
+		  from sys_iteminfo
+		 where id=#{id}
+ 	</select>
+ 	
+ 	<!-- 删除记录 -->
+ 	<update id="delete" parameterType="pd">
+ 		update sys_iteminfo
+ 		   set deleted=1
+ 		 where id=#{id}
+ 	</update>
+	
+	<!-- 分页查询记录 -->
+	<select id="getListPage" parameterType="page" resultType="pd">
+		select a.*,
+			   b.name as typeName,b.number AS typeNumber
+		  from sys_iteminfo a inner join sys_itemtype b on a.type_id=b.id
+		 where a.deleted=0
+		<if test="pd.type_id != null and pd.type_id != ''">
+			and a.type_id=#{pd.type_id}
+		</if>
+		<if test="pd.key != null and pd.key != ''">
+			and (a.number like concat(concat('%',#{pd.key}),'%') or
+		 	 	 a.name like concat(concat('%',#{pd.key}),'%'))
+		</if>
+		<if test="pd.where != null and pd.where != ''">
+			${pd.where}
+		</if>
+		<choose>
+			<when test="pd.orderBy != null and pd.orderBy != ''">
+				${pd.orderBy}
+			</when>
+			<otherwise>
+				order by a.number
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据类型编号查询记录 -->
+	<select id="getInfo" parameterType="pd" resultType="pd">
+		select a.*,b.name as typeName,b.number as typeNumber
+		  from sys_iteminfo a inner join sys_itemtype b on a.type_id=b.id
+		 where a.deleted=0
+		 <if test="typeNumber != null and typeNumber != ''">
+		 	and b.number=#{typeNumber}
+		 </if>
+		 <if test="infoNumber != null and infoNumber != ''">
+		 	and a.number=#{infoNumber}
+		 </if>
+		<if test="infoName != null and infoName != ''">
+			and a.name=#{infoName}
+		</if>
+		<if test="parent_id!=null and parent_id!=''">
+			and a.parent_id=#{parent_id}
+		</if>
+		<if test="parent_ids!=null and parent_ids.length>0">
+			and a.parent_id in
+			<foreach collection="parent_ids" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	  order by a.number
+	</select>
+	
+	
+	<!-- ================字典信息=====================end -->
+
+
+</mapper>

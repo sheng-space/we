@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<!-- 用户管理 -->
+<mapper namespace="UserMapper">
+
+	<!-- 根据账号和密码进行登录 -->
+	<select id="login" parameterType="pd" resultType="pd">
+		SELECT a.*,
+			   b.org_status,
+			   c.role_name,
+			   d.right_ids as org_ids,
+			   e.name as user_type_name
+		  FROM sys_user a LEFT JOIN sys_org b ON a.org_id=b.id and b.deleted=0
+						  LEFT JOIN sys_role c ON a.role_id=c.id and c.deleted=0
+						  LEFT JOIN (SELECT user_id,GROUP_CONCAT(org_id) AS right_ids FROM sys_user_rights GROUP BY user_id) d on a.id=d.user_id
+						  left join sys_iteminfo e on a.user_type=e.id
+		WHERE a.account=#{account} and
+			   a.password=#{password} and
+			   a.deleted=0
+	</select>
+	
+	<!-- 根据ID获得信息 -->
+	<select id="get" parameterType="String" resultType="pd">
+		select a.*,
+				b.role_name,
+				c.org_name,
+				d.name as group_name
+		from sys_user a left join sys_role b on a.role_id=b.id
+						left join sys_org c on a.org_id=c.id
+						left join sys_iteminfo d on a.user_type=d.id
+		where a.id=#{user_id}
+	</select>
+	
+	<!-- 新增信息 -->
+	<insert id="add" parameterType="pd">
+		insert into sys_user(
+			id,
+			account,
+			user_name,
+			user_status,
+			role_id,
+			org_id,
+			user_type,
+			phone,
+			password,
+			duty,
+			remark,
+			address,
+			add_time,
+			img_url,
+			company_id,
+			deleted
+		)values(
+			#{id},
+			#{account},
+			#{user_name},
+			1,
+			#{role_id},
+			#{org_id},
+			#{user_type},
+			#{phone},
+			#{password},
+			#{duty},
+			#{remark},
+			#{address},
+			#{add_time},
+			#{img_url},
+			#{companyId},
+			0
+		)
+	</insert>
+	
+	<!-- 修改信息 -->
+	<update id="edit" parameterType="pd">
+		update sys_user
+		   set account=#{account},
+		   	   user_name=#{user_name},
+		   	   role_id=#{role_id},
+		   	   org_id=#{org_id},
+		   	   user_type=#{user_type},
+		   	   phone=#{phone},
+		   	   duty=#{duty},
+		   	   remark=#{remark},
+		   	   address=#{address},
+		   	   img_url=#{img_url},
+		   	   company_id=#{companyId}
+		 where id=#{id}
+	</update>
+	
+	<!-- 删除信息 -->
+	<update id="delete" parameterType="pd">
+		update sys_user
+		   set deleted=1
+		 where id=#{id}
+	</update>
+	
+	<!-- 分页获得记录 -->
+	<select id="getListPage" parameterType="page" resultType="pd">
+		select a.*,
+			    b.role_name,
+			    c.org_name,
+			    d.name as group_name
+		  from sys_user a left join sys_role b on a.role_id=b.id
+		  				  left join sys_org c on a.org_id=c.id
+		  				  left join sys_iteminfo d on a.user_type=d.id
+		where a.deleted=0
+		<if test="pd.org_id != null and pd.org_id != ''">
+			and a.org_id=#{pd.org_id}
+		</if>
+		<if test="pd.key != null and pd.key != ''">
+			and (a.user_name like concat('%',#{pd.key},'%') or
+				 a.account like concat('%',#{pd.key},'%') or
+				c.org_name like concat('%',#{pd.key},'%'))
+		</if>
+		<if test="pd.user_status != null and pd.user_status != ''">
+			and a.user_status=#{pd.user_status}
+		</if>
+		<choose>
+			<when test="pd.orderBy != null and pd.orderBy != ''">
+				${pd.orderBy}
+			</when>
+			<otherwise>
+				order by a.add_time desc
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 获得全部 -->
+	<select id="getAll" parameterType="pd" resultType="pd">
+		select * 
+		  from sys_user 
+		 where deleted=0
+		<if test="org_id != null and org_id != ''">
+			and org_id=#{org_id}
+		</if>
+		order by add_time
+	</select>
+	
+	<!-- 启用/禁用记录 -->
+	<update id="status" parameterType="pd">
+		update sys_user
+		   set user_status=(case when user_status=1 then 0 else 1 end)
+		 where id=#{id}
+	</update>
+	
+	<!-- 获得用户的权限记录 -->
+	<select id="getUserRights" parameterType="pd" resultType="pd">
+		SELECT a.*,(CASE WHEN b.id IS NULL THEN 0 ELSE 1 END) AS fcheck 
+		  FROM sys_org a LEFT JOIN sys_user_rights b ON a.id=b.org_id AND b.user_id=#{user_id}
+		 WHERE a.deleted=0
+	  ORDER BY a.all_code
+	</select>
+	
+	<!-- 修改密码 -->
+	<update id="changePwd" parameterType="pd">
+		update sys_user
+		   set password=#{password}
+		 where id=#{id}
+	</update>
+	
+	
+</mapper>

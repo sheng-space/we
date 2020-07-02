@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<!-- 菜单 -->
+<mapper namespace="MenuMapper">
+	
+	<!-- 新增菜单 -->
+	<insert id="add" parameterType="pd">
+		insert into sys_menu(
+			id,
+			menu_name,
+			menu_code,
+			menu_url,
+			index_,
+			parent_id,
+			menu_icon,
+			menu_icon1,
+			sys_menu,
+			open_type
+		)values(
+			#{id},
+			#{menu_name},
+			#{menu_code},
+			#{menu_url},
+			#{index_},
+			#{parent_id},
+			#{menu_icon},
+			#{menu_icon1},
+			#{sys_menu},
+			#{open_type}
+		)
+	</insert>
+	
+	<!-- 修改菜单 -->
+	<update id="edit" parameterType="pd">
+		update sys_menu
+		   set menu_name=#{menu_name},
+		   	   menu_code=#{menu_code},
+		       menu_url=#{menu_url},
+		       index_=#{index_},
+		       parent_id=#{parent_id},
+		       menu_icon=#{menu_icon},
+		       menu_icon1=#{menu_icon1},
+		       open_type=#{open_type},
+		       sys_menu=#{sys_menu}
+		 where id=#{id}
+	</update>
+	
+	<!-- 查询单个菜单 -->
+	<select id="get" parameterType="pd" resultType="pd">
+		select * 
+		  from sys_menu
+		 where id=#{id}
+	</select>
+	
+	<!-- 删除菜单 -->
+	<delete id="delete" parameterType="String">
+		delete from sys_menu where id=#{id}
+	</delete>
+	
+	<!-- 查询全部 -->
+	<select id="getListPage" parameterType="pd" resultType="pd">
+		select * 
+		  from sys_menu
+		 where 1=1
+		 <if test="pd.parent_id != null and pd.parent_id != ''">
+		 	and parent_id=#{parent_id}
+		 </if>
+		<if test="pd.key != null and pd.key != ''">
+			and menu_name like concat('%',#{pd.key},'%')
+		</if>
+		<choose>
+			<when test="pd.orderBy != null and pd.orderBy != ''">
+				${pd.orderBy}
+			</when>
+			<otherwise>
+				order by index_
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 查询此用户能看到的菜单信息 -->
+	<select id="getMenuList" parameterType="pd" resultType="pd">
+		SELECT a.* 
+          FROM sys_menu a INNER JOIN sys_mright b ON a.id=b.menu_id
+                          INNER JOIN sys_user c ON b.role_id=c.role_id
+         WHERE c.id=#{user_id} and 
+               FIND_IN_SET(a.id,queryChildrenMenuInfo(#{parent_id})) and
+               a.id &lt;&gt; #{parent_id}
+      order by a.index_
+	</select>
+	
+	<!-- 查询此用户能看到的一级菜单信息 -->
+	<select id="getOneMenuList" parameterType="pd" resultType="pd">
+		SELECT a.* 
+          FROM sys_menu a INNER JOIN sys_mright b ON a.id=b.menu_id
+                          INNER JOIN sys_user c ON b.role_id=c.role_id
+         WHERE c.id=#{user_id} and 
+               not exists(select 1 from sys_user_nmenu t where t.id=a.id and t.user_id=c.id) and
+               a.parent_id='0'
+      order by a.index_
+	</select>
+	
+	<!-- 查询所有菜单记录 -->
+	<select id="getAll" parameterType="pd" resultType="pd">
+		select *
+		  from sys_menu
+	  order by index_
+	</select>
+	
+	<!-- 查询此用户能看到的菜单信息 -->
+	<select id="getMenuList1" parameterType="pd" resultType="pd">
+		SELECT a.* 
+          FROM sys_menu a INNER JOIN sys_mright b ON a.id=b.menu_id
+                          INNER JOIN sys_user c ON b.role_id=c.role_id
+         WHERE c.id=#{user_id}
+      order by a.index_
+	</select>
+	
+</mapper>
